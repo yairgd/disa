@@ -6,6 +6,43 @@ The module allows 2 interfaces from user space:
 ..* Using kernel parameters API. 
 ..* Using kernel char device API (using misc device)
 
+# How to run
+```bash
+git clone https://github.com/yairgd/disa.git
+cd disa
+make 
+sudo insmod module/disa.ko
+```
+
+# Testing the misc interface
+Run test1 and see its results
+```bash
+sudo ./test1
+dmesg |tail -n50
+```
+And compare between the output of test1 function that disasemble func1 (see test1.c) on user space and in the kernel space using disa module. Here is the output of test1 in user space:
+```bash
+this function  named "func1" with param 123
+push rbp
+mov rbp, rsp
+sub rsp, 0x10
+mov [rbp-0x04], edi
+mov eax, [rbp-0x04]
+mov edx, eax
+lea rsi, [0x000055EE2B1475D5]
+```
+and the same disasebly in kernel space:
+```bash
+[30799.761522] push rbp
+[30799.761530] mov rbp, rsp
+[30799.761536] sub rsp, 0x10
+[30799.761542] mov [rbp-0x04], edi
+[30799.761545] mov eax, [rbp-0x04]
+[30799.761548] mov edx, eax
+[30799.761552] lea rsi, [0x000055F50A1455D5]
+```
+# Testing module params interface
+
 
 # References
 Here are some reference sources that used to create this module
