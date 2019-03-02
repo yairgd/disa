@@ -50,7 +50,27 @@ and the same disasebly in kernel space:
 [30799.761548] mov edx, eax
 [30799.761552] lea rsi, [0x000055F50A1455D5]
 ```
-## Testing module params interface
+Both results are identical with gdb:
+```bash
+   0xfaba <func1>:	    push   %rbp
+   0xfabb <func1+1>:    mov    %rsp,%rbp
+   0xfabe <func1+4>:    sub    $0x10,%rsp
+   0xfac2 <func1+8>:    mov    %edi,-0x4(%rbp)
+   0xfac5 <func1+11>:   mov    -0x4(%rbp),%eax
+   0xfac8 <func1+14>:   mov    %eax,%edx
+   0xfaca <func1+16>:   lea    0x17b04(%rip),%rsi        # 0x275d5 <__FUNCTION__.3489>
+```
+and func1 eauls to :
+```bash
+p/u (void*)func1
+$14 = 93824992295610
+```
+and the addr parameters also equals  to it:
+```bash
+cat /sys/module/disasm/parameters/addr 
+93824992295610
+```
+## Testing module parameters API interface
 Use this command to get list of inernal functions that module is able to disasebmly 
 ```bash
 cat /sys/module/disasm/parameters/func 
