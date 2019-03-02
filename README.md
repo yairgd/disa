@@ -14,13 +14,15 @@ make
 sudo insmod module/disa.ko
 ```
 
-# Testing the misc interface
+# Testing the module
 Run test1 and see its results
 ```bash
 sudo ./test1
 dmesg |tail -n50
 ```
-And compare between the output of test1 function that disasemble func1 (see test1.c) on user space and in the kernel space using disa module. Here is the output of test1 in user space:
+
+## Testing the misc interface
+Compare between the output of test1 function that disasemble func1 (see test1.c) on user space and in the kernel space using disa module. Here is the output of test1 in user space:
 ```bash
 this function  named "func1" with param 123
 push rbp
@@ -41,8 +43,36 @@ and the same disasebly in kernel space:
 [30799.761548] mov edx, eax
 [30799.761552] lea rsi, [0x000055F50A1455D5]
 ```
-# Testing module params interface
+## Testing module params interface
+Use this command to get list of inernal functions that module is able to disasebmly 
+```bash
+cat /sys/module/disasm/parameters/func 
+```
+The result should be 
+```bash
+list of functions to disassely:
+kmalloc,kfree,printk
+```
+To disasmble functions use this command:
+```bash
+# select function 
+sudo sh -c 'echo printk > /sys/module/disasm/parameters/func'
+# size of memory to disassbly+
 
+sudo sh -c 'echo 24 > /sys/module/disasm/parameters/size'
+dmesg | tail -n50
+```
+And the result is
+```bash
+[31477.477713] disassembly of printk
+[31477.477729] push rbp
+[31477.477734] mov rbp, rsp
+[31477.477737] push r10
+[31477.477742] lea rax, [rbp-0x38]
+[31477.477745] lea r10, [rbp+0x10]
+[31477.477750] sub rsp, 0x48
+[31477.477753] mov [rbp-0x30], rsi
+```
 
 # References
 Here are some reference sources that used to create this module
