@@ -1,5 +1,5 @@
 # disa
-Simple module to disassembly memory using Linux kernel module. This modules is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also , there is a user space application to demonstrate  the Zydis library on a test function in user space and disassembly of the same function the kernel space. Also is is able to dissemble internals function of the kernel like: printk, kmalloc etc'. 
+Simple module to disassembly memory using Linux kernel module. This modules is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also , there is a user space application to demonstrate  the Zydis library on a test function in user space and disassembly of the same function the kernel space. Also is is able to dissemble internals function of the kernel like: printk, kmalloc etc'. This is a good reference how to use [markdown]. (https://daringfireball.net/projects/markdown/basics) 
 
 # Module structure
 The module allows 2 interfaces from user space: 
@@ -84,7 +84,7 @@ And the result is
 # References
 Here are some reference sources that used to create this module
 
-http://www.embeddedlinux.org.cn/essentiallinuxdevicedrivers/final/ch05lev1sec7.html 
+http://www.embeddedlinux.org.cn/essentiallinuxdevicedrivers/final/ch05lev1sec7.html
 http://olegkutkov.me/2018/03/14/simple-linux-character-device-driver/
 https://linux-kernel-labs.github.io/master/labs/device_drivers.html
 https://gist.github.com/brenns10/65d1ee6bb8419f96d2ae693eb7a66cc0
