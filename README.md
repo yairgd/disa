@@ -65,7 +65,6 @@ To disasmble functions use this command:
 # select function 
 sudo sh -c 'echo printk > /sys/module/disasm/parameters/func'
 # size of memory to disassbly+
-
 sudo sh -c 'echo 24 > /sys/module/disasm/parameters/size'
 dmesg | tail -n50
 ```
