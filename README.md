@@ -65,7 +65,7 @@ and func1 eauls to :
 p/u (void*)func1
 $14 = 93824992295610
 ```
-and the addr parameters also equals  to it:
+and the addr parameter also equals to it:
 ```bash
 cat /sys/module/disasm/parameters/addr 
 93824992295610
