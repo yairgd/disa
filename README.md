@@ -1,5 +1,5 @@
 # disa
-Simple module to disassembly memory using Linux kernel module. This modules is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also , there is a user space application to demonstrate  the Zydis library on a test function in user space and disassembly of the same function the kernel space. Also the is an option to dissemble internals function of the kernel like: printk, kmalloc etc'. 
+Simple module to disassembly memory using Linux kernel module. This modules is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also , there is a user space application to demonstrate  the Zydis library on a test function in user space and disassembly of the same function the kernel space. Also is is able to dissemble internals function of the kernel like: printk, kmalloc etc'. 
 
 # Module structure
 The module allows 2 interfaces from user space: 
