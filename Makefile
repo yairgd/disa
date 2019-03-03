@@ -4,6 +4,9 @@ ZYDIS-REPO = https://github.com/zyantific/zydis.git
 CFLAGS=-I. -I./$(ZYDIS-DIR)/include  -I./$(ZYDIS-DIR)/build  -I./$(ZYDIS-DIR)/build/dependencies/zycore  -I./$(ZYDIS-DIR)/build_for_app -I$(ZYDIS-DIR)/build_for_app/dependencies/zycore/  -I./$(ZYDIS-DIR)/dependencies/zycore/include/ -I./$(ZYDIS-DIR)  -g3 -O0
 # DEPS = unmaker if depend on heaader files
 
+top_srcdir  = $(shell pwd)
+export top_srcdir
+
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 

@@ -1,6 +1,6 @@
 #C_INCLUDE_PATH=../zydis/include/Zydis
 #CPATH=../zydis/include/Zydis
-EXTRA_CFLAGS=-I/home/yair/disa/zydis/include/Zydis  -I/home/yair/disa/zydis/build_for_kernel/   -I/home/yair/disa/zydis/dependencies/zycore/include/ -I/home/yair/disa/zydis/build_for_kernel  -I/home/yair/disa/zydis/build_for_kernel/ -I/home/yair/disa/zydis/build_for_kernel/dependencies/zycore/ -I/home/yair/disa/zydis/include/ -DZYAN_NO_LIBC 
+EXTRA_CFLAGS=-I$(top_srcdir)/zydis/include/Zydis  -I$(top_srcdir)/zydis/build_for_kernel/   -I$(top_srcdir)/zydis/dependencies/zycore/include/ -I$(top_srcdir)/zydis/build_for_kernel  -I$(top_srcdir)/zydis/build_for_kernel/ -I$(top_srcdir)/zydis/build_for_kernel/dependencies/zycore/ -I$(top_srcdir)/zydis/include/ -DZYAN_NO_LIBC 
 
 #-Wundef 
 #-Wframe-larger-than=4096 -Wint-to-pointer-cast -mcmodel=kernel 
