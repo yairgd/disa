@@ -7,7 +7,7 @@ CFLAGS=-I. -I./$(ZYDIS-DIR)/include  -I./$(ZYDIS-DIR)/build  -I./$(ZYDIS-DIR)/bu
 top_srcdir  = $(shell pwd)
 export top_srcdir
 
-%.o: %.c $(DEPS)
+%.o: %.c $(DEPS) module/%.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 test1: zydis  disasm.ko test1.o 
@@ -28,7 +28,7 @@ zydis:
           git submodule update --init;\
 	  mkdir build_for_kernel ;\
 	  cd build_for_kernel;\
-	  cmake -D CMAKE_C_FLAGS="-DNDEBUG -fno-pic -mcmodel=kernel  " .. ;\
+	  cmake -D CMAKE_C_FLAGS="-fno-stack-protector -DNDEBUG -fno-pic -mcmodel=kernel  " .. ;\
 	  make ;\
 	  cd .. ;\
 	  mkdir build_for_app ;\
