@@ -149,9 +149,9 @@ int main()
 	size = atoi (buf);
 
 	char buff[128];
-	fd = open ( "/dev/disa",O_WRONLY);
+	fd = open ( "/dev/disa",O_RDONLY);
 
-//	read  ( fd,buff, size);
+	read  ( fd,buff, 128);
 
 	close (fd);
 	return 0;
