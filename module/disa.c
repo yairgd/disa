@@ -51,43 +51,49 @@ const struct _func {
 };
 
 
-static ZydisFormatter formatter;
-static char buffer[256];
-static ZydisDecodedInstruction instruction;
-static ZydisDecoder decoder;
+struct disa_params {
+	ZydisFormatter formatter;
+	char buffer[256];
+	ZydisDecodedInstruction instruction;
+	ZydisDecoder decoder;
+	ZyanUSize offset ;
+	unsigned long addr ;
+	int size;
+};
+static struct disa_params disa_params;
 
-static
+	static
 void disa (void *p,int n,ZyanUSize offset )
 {
-    ZyanU8 *data  = p;
-  //  int sizeofp = n;
-   
-    ZyanU64 runtime_address = (ZyanU64)p;
-    const ZyanUSize length = n; 
+	ZyanU8 *data  = p;
+	//  int sizeofp = n;
 
-    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+	ZyanU64 runtime_address = (ZyanU64)p;
+	const ZyanUSize length = n; 
 
-    // Initialize formatter. Only required when you actually plan to do instruction
-    // formatting ("disassembling"), like we do here
-    ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+	ZydisDecoderInit(&disa_params.decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 
-    // Loop over the instructions in our buffer.
-    // The runtime-address (instruction pointer) is chosen arbitrary here in order to better
-    // visualize relative addressing
-    while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, data + offset, length - offset,
-        &instruction)))
-    {
-        // Print current instruction pointer.
-        //printk("%016" PRIX64 "  ", runtime_address);
+	// Initialize formatter. Only required when you actually plan to do instruction
+	// formatting ("disassembling"), like we do here
+	ZydisFormatterInit(&disa_params.formatter, ZYDIS_FORMATTER_STYLE_INTEL);
 
-        // Format & print the binary instruction structure to human readable format	
-        ZydisFormatterFormatInstruction(&formatter, &instruction, buffer, sizeof(buffer),
-            runtime_address);
-        printk("%s\n",buffer);
-	
-        offset += instruction.length;
-        runtime_address += instruction.length;
-    }
+	// Loop over the instructions in our buffer.
+	// The runtime-address (instruction pointer) is chosen arbitrary here in order to better
+	// visualize relative addressing
+	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&disa_params.decoder, data + offset, length - offset,
+					&disa_params.instruction)))
+	{
+		// Print current instruction pointer.
+		//printk("%016" PRIX64 "  ", runtime_address);
+
+		// Format & print the binary instruction structure to human readable format	
+		ZydisFormatterFormatInstruction(&disa_params.formatter, &disa_params.instruction, disa_params.buffer, sizeof(disa_params.buffer),
+				runtime_address);
+		printk("%s\n",disa_params.buffer);
+
+		offset += disa_params.instruction.length;
+		runtime_address += disa_params.instruction.length;
+	}
 }
 
 
@@ -123,7 +129,7 @@ static int func_set(const char *val, const struct kernel_param *kp)
 		if (strncmp (f->name,func_name,strlen (f->name))==0) {
 			if (f->fp) {
 				printk ("disassembly of %s\n",f->name);
-				
+
 				disa (f->fp,size,0);
 			}
 			return 0;	
@@ -179,26 +185,71 @@ disa_close(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/* Pet the dog */
-static ssize_t
-disa_read(struct file *file, char __user *data,
+	static ssize_t
+disa_read(struct file *file, char __user *buffer,
 		size_t len, loff_t *ppose)
 {
+	struct disa_params *disa_params = file->private_data;
+	ZyanUSize offset = disa_params->offset;
+	ZyanU8 *data  = (void*)disa_params->addr;
+	const ZyanUSize length =  disa_params->size;
+	ZyanU64 runtime_address = (ZyanU64)data;
+
+
+	//  int sizeofp = n;
+
+
+
+
+	// Loop over the instructions in our buffer.
+	// The runtime-address (instruction pointer) is chosen arbitrary here in order to better
+	// visualize relative addressing
+	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&disa_params->decoder, data + offset, length - offset,
+					&disa_params->instruction)))
+	{
+		// Print current instruction pointer.
+		//printk("%016" PRIX64 "  ", runtime_address);
+
+		// Format & print the binary instruction structure to human readable format	
+		ZydisFormatterFormatInstruction(&disa_params->formatter, &disa_params->instruction, disa_params->buffer, sizeof(disa_params->buffer),
+				runtime_address);
+		printk("%s\n",disa_params->buffer);
+
+		offset += disa_params->instruction.length;
+		runtime_address += disa_params->instruction.length;
+	}
+
+
+
 	return 0;
 }
 
 
-/* Open watchdog */
-static int
+	static int
 disa_open(struct inode *inode, struct file *file)
 {
+	struct disa_params *disa_params=  kmalloc (GFP_USER,sizeof (struct disa_params));
+	memset (disa_params,0,sizeof (struct disa_params));
+	disa_params->addr = addr;
+	disa_params->size = size;
+	ZydisDecoderInit(&disa_params->decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+	ZydisFormatterInit(&disa_params->formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+	file->private_data = disa_params;
 
-//	disa ( kmalloc/*(void*)addr*/,24);
-	disa ((void*)addr,size,0);
+	//	disa ( kmalloc/*(void*)addr*/,24);
+//	disa ((void*)addr,size,0);
 
 	return 0;
 }
 
+
+	static int
+disa_release(struct inode *inode, struct file *file)
+{
+
+	kfree (file->private_data );
+	return 0;
+}
 
 
 
@@ -208,13 +259,14 @@ struct file_operations fops_disa = {
 	.open = disa_open,
 	.release = disa_close,
 	.read = disa_read,
+	.release = disa_release
 };
 
 
 /* Misc structure */
 static struct miscdevice disa_dev = {
 	.minor = 130, /* defined as 130 in
-				    include/linux/miscdevice.h*/
+			 include/linux/miscdevice.h*/
 	.name = DEVICE_NAME,      /* /dev/DEVICE_NAME */
 	.fops = &fops_disa  /* disa driver entry points */
 };

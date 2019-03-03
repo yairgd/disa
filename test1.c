@@ -148,7 +148,11 @@ int main()
 	close (fd);
 	size = atoi (buf);
 
+	char buff[128];
 	fd = open ( "/dev/disa",O_WRONLY);
+
+//	read  ( fd,buff, size);
+
 	close (fd);
 	return 0;
 }
