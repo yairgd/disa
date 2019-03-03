@@ -187,7 +187,7 @@ disa_close(struct inode *inode, struct file *file)
 }
 
 	static ssize_t
-disa_read(struct file *file, char __user *buffer,
+disa_read(struct file *file, char __user *data_to_user,
 		size_t len, loff_t *ppose)
 {
 	struct disa_params *disa_params = file->private_data;
@@ -220,7 +220,7 @@ disa_read(struct file *file, char __user *buffer,
 		disa_params->runtime_address += disa_params->instruction.length;
 	}
 
-
+//	copy_to_user(data_to_user,disa_params->buffer,strlen(disa_params->buffer));
 	return 0;
 }
 
