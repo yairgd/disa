@@ -22,7 +22,6 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/fs.h>
-#include <asm/uaccess.h> /* for put_user */ 
 #include <linux/miscdevice.h>
 #include <linux/suspend.h>
 #include <linux/syscalls.h>
@@ -51,14 +50,11 @@ const struct _func {
 	{0,0}
 };
 
-void
-	__attribute__ ((noreturn))
-	__stack_chk_fail (void)
-	{
-	  while(1){};
-	}
- static ZydisFormatter formatter;
- static char buffer[256];
+
+static ZydisFormatter formatter;
+static char buffer[256];
+static ZydisDecodedInstruction instruction;
+static ZydisDecoder decoder;
 
 static
 void disa (void *p,int n,ZyanUSize offset )
@@ -68,10 +64,7 @@ void disa (void *p,int n,ZyanUSize offset )
    
     ZyanU64 runtime_address = (ZyanU64)p;
     const ZyanUSize length = n; 
-    ZydisDecodedInstruction instruction;
 
-    // Initialize decoder context
-    ZydisDecoder decoder;
     ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 
     // Initialize formatter. Only required when you actually plan to do instruction

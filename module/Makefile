@@ -1,6 +1,6 @@
 #C_INCLUDE_PATH=../zydis/include/Zydis
 #CPATH=../zydis/include/Zydis
-EXTRA_CFLAGS=-I/home/yair/disa/zydis/include/Zydis  -I/home/yair/disa/zydis/build_for_kernel/   -I/home/yair/disa/zydis/dependencies/zycore/include/ -I/home/yair/disa/zydis/build_for_kernel  -I/home/yair/disa/zydis/build_for_kernel/ -I/home/yair/disa/zydis/build_for_kernel/dependencies/zycore/ -DZYAN_NO_LIBC 
+EXTRA_CFLAGS=-I/home/yair/disa/zydis/include/Zydis  -I/home/yair/disa/zydis/build_for_kernel/   -I/home/yair/disa/zydis/dependencies/zycore/include/ -I/home/yair/disa/zydis/build_for_kernel  -I/home/yair/disa/zydis/build_for_kernel/ -I/home/yair/disa/zydis/build_for_kernel/dependencies/zycore/ -I/home/yair/disa/zydis/include/ -DZYAN_NO_LIBC 
 
 #-Wundef 
 #-Wframe-larger-than=4096 -Wint-to-pointer-cast -mcmodel=kernel 
@@ -17,4 +17,3 @@ all:
 
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-	rm Module.symvers
