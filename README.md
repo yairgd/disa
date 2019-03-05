@@ -1,16 +1,16 @@
 # disa
-Simple module to disassembly memory using Linux kernel module. This modules is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also , there is a user space application to demonstrate  the Zydis library on a test function in user space and disassembly of the same function at the kernel space. Also is is able to dissemble internal functions of the kernel like: printk, kmalloc etc'. This document is written with MarkDown and [here](https://daringfireball.net/projects/markdown/basics) is a good reference explaining how to use it.
+Simple module to disassembly memory using a Linux kernel module. This module is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also, there is a userspace application to demonstrate the Zydis library on a test function in user space and disassembly of the same function at the kernel space. Also, it is able to dissemble internal functions of the kernel like printk, kmalloc etc'. This document is written with MarkDown and [here](https://daringfireball.net/projects/markdown/basics) is a good reference explaining how to use it.
 
 # Module structure
 The module allows 2 interfaces from user space: 
 * Using kernel parameters API. 
-    This part of the module demonstrate the use of module parameters API to control the module. There are 2 parameters:
+    This part of the module demonstrates the use of module parameters API to control the module. There are 2 parameters:
     
-    1. *size* - the size of memory to disasmble
-    2. *func* - name of build in Linux kernel to disassemble 
+    1. *size* - the size of memory to disassemble
+    2. *func* - the name of build in Linux kernel to disassemble 
     
 * Using kernel char device API (using misc device):
-The purpose of this interface is to make a file behavior for the disa module using */dev/disasm* using file system calls like open,read,ioctl. this interface  it not ready yet, so the disassembly is done when open system call is called (See test1.c)
+The purpose of this interface is to make a file behavior for the disa module using */dev/disasm* using file system calls like open,read,ioctl. this interface  it not ready yet, so the disassembly is done when an open system call is called (See test1.c)
 
 
 # Build the module
