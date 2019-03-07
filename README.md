@@ -103,7 +103,7 @@ And the result is
 
 # References
 Here are some reference sources that used to create this module
-
+https://stackoverflow.com/questions/10748453/replace-comma-with-newline-in-sed-on-macos
 http://www.embeddedlinux.org.cn/essentiallinuxdevicedrivers/final/ch05lev1sec7.html</br>
 http://olegkutkov.me/2018/03/14/simple-linux-character-device-driver/</br>
 https://linux-kernel-labs.github.io/master/labs/device_drivers.html</br>
