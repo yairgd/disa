@@ -87,7 +87,7 @@ static char *func_name;
 static  struct _func *sel_int_func = 0;
 static int func_set(const char *val, const struct kernel_param *kp)
 {
-	const struct _func  *f = funcs;
+	struct _func  *f = funcs;
 	if ( param_set_charp(val, kp)<0)
 		return -EINVAL;
 	sel_int_func = 0;
@@ -141,48 +141,53 @@ module_param_cb(addr, &addr_ops, &addr,  S_IRUGO | S_IWUSR );
 
 
 /* Close watchdog */
-	static int
+static int
 disa_close(struct inode *inode, struct file *file)
 {
 	return 0;
 }
 
-	static ssize_t
+static ssize_t
 disa_read(struct file *file, char __user *data_to_user,
 		size_t len, loff_t *ppose)
 {
 	struct disa_params *disa_params = file->private_data;
-//	ZyanUSize offset = disa_params->offset;
 	ZyanU8 *data  = (void*)disa_params->addr;
 	const ZyanUSize length =  disa_params->size;
-//	ZyanU64 runtime_address = disa_params->addr;
+	char buf[64];
+	int bufferlen;
 
 
-	//  int sizeofp = n;
-
-
-
+	bufferlen = 0;
+	disa_params->buffer[0] = 0;
 	// Loop over the instructions in our buffer.
 	// The runtime-address (instruction pointer) is chosen arbitrary here in order to better
 	// visualize relative addressing
-	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&disa_params->decoder, data + disa_params->offset, length - disa_params->offset,
-					&disa_params->instruction)))
+	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&disa_params->decoder, data + disa_params->offset, length - disa_params->offset,&disa_params->instruction)))
 	{
 		// Print current instruction pointer.
 		//printk("%016" PRIX64 "  ", runtime_address);
 
 		// Format & print the binary instruction structure to human readable format	
-		ZydisFormatterFormatInstruction(&disa_params->formatter, &disa_params->instruction, disa_params->buffer, sizeof(disa_params->buffer),
-				disa_params->runtime_address);
+		ZydisFormatterFormatInstruction(&disa_params->formatter, &disa_params->instruction, buf , sizeof(buf), disa_params->runtime_address);
 
-		printk("%s\n",disa_params->buffer);
+		bufferlen = strlen ( disa_params->buffer) ;
+		if (bufferlen + strlen (buf) +1 < len  && bufferlen + strlen (buf) <256  ) {
+			memcpy (bufferlen  +  disa_params->buffer , buf,strlen (buf));
+			bufferlen = strlen ( disa_params->buffer) ;
+			disa_params->buffer [bufferlen]='\n';bufferlen++;
+			disa_params->buffer [bufferlen]=0;
 
-		disa_params->offset += disa_params->instruction.length;
-		disa_params->runtime_address += disa_params->instruction.length;
+			//printk("%s\n",disa_params->buffer);
+
+			disa_params->offset += disa_params->instruction.length;
+			disa_params->runtime_address += disa_params->instruction.length;
+		} else
+			break;
 	}
 
-//	copy_to_user(data_to_user,disa_params->buffer,strlen(disa_params->buffer));
-	return 0;
+	copy_to_user(data_to_user,disa_params->buffer,  bufferlen  );
+	return bufferlen;
 }
 
 
@@ -194,16 +199,12 @@ disa_open(struct inode *inode, struct file *file)
 	if (!sel_int_func)
 		return -EINVAL;
 	disa_params = kzalloc (sizeof (struct disa_params) , GFP_USER);
-	disa_params->addr = sel_int_func->fp;
+	disa_params->addr = (unsigned long)(sel_int_func->fp);
 	disa_params->size = 64;
 	disa_params->runtime_address = addr; 
 	ZydisDecoderInit(&disa_params->decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 	ZydisFormatterInit(&disa_params->formatter, ZYDIS_FORMATTER_STYLE_INTEL);
 	file->private_data = disa_params;
-
-	//	disa ( kmalloc/*(void*)addr*/,24);
-//	disa ((void*)addr,size,0);
-
 	return 0;
 }
 
