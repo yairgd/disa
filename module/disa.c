@@ -59,7 +59,7 @@ struct disa_params {
 	ZyanUSize offset ;
 	ZyanU64 runtime_address; 
 	unsigned long addr ;
-	int size;
+//	int size;
 };
 
 /* not needed parameters, just for demo */
@@ -153,7 +153,7 @@ disa_read(struct file *file, char __user *data_to_user,
 {
 	struct disa_params *disa_params = file->private_data;
 	ZyanU8 *data  = (void*)disa_params->addr;
-	const ZyanUSize length =  disa_params->size;
+	const ZyanUSize length =  len;
 	char buf[64];
 	int bufferlen;
 
@@ -172,10 +172,10 @@ disa_read(struct file *file, char __user *data_to_user,
 		ZydisFormatterFormatInstruction(&disa_params->formatter, &disa_params->instruction, buf , sizeof(buf), disa_params->runtime_address);
 
 		bufferlen = strlen ( disa_params->buffer) ;
-		if (bufferlen + strlen (buf) +1 < len  && bufferlen + strlen (buf) <256  ) {
+		if (bufferlen + strlen (buf) +1 < len  && bufferlen + strlen (buf) + 1 <256  ) {
 			memcpy (bufferlen  +  disa_params->buffer , buf,strlen (buf));
 			bufferlen = strlen ( disa_params->buffer) ;
-			disa_params->buffer [bufferlen]='\n';bufferlen++;
+			disa_params->buffer [bufferlen]=';';bufferlen++;
 			disa_params->buffer [bufferlen]=0;
 
 			//printk("%s\n",disa_params->buffer);
@@ -186,6 +186,10 @@ disa_read(struct file *file, char __user *data_to_user,
 			break;
 	}
 
+//	if (bufferlen) {
+//		bufferlen--;
+//		disa_params->buffer[bufferlen] =0;
+//	}
 	copy_to_user(data_to_user,disa_params->buffer,  bufferlen  );
 	return bufferlen;
 }
@@ -200,7 +204,7 @@ disa_open(struct inode *inode, struct file *file)
 		return -EINVAL;
 	disa_params = kzalloc (sizeof (struct disa_params) , GFP_USER);
 	disa_params->addr = (unsigned long)(sel_int_func->fp);
-	disa_params->size = 64;
+//	disa_params->size = 64;
 	disa_params->runtime_address = addr; 
 	ZydisDecoderInit(&disa_params->decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 	ZydisFormatterInit(&disa_params->formatter, ZYDIS_FORMATTER_STYLE_INTEL);
