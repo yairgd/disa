@@ -23,9 +23,9 @@ zydis:
 	  echo "zydis does not exist, fetching and copiling"; \
 	  echo "if any thing is failed ,then you will have to to mannualy"; \
 	  git clone --branch master  $(ZYDIS-REPO); \
-          git reset --hard de9f60df9e32ec42b5a4c66fd548bae7de93abc8 ;\
-	  cd $(ZYDIS-DIR) ;\
+          cd $(ZYDIS-DIR) ;\
           git submodule update --init;\
+	  git reset --hard de9f60df9e32ec42b5a4c66fd548bae7de93abc8 ;\
 	  mkdir build_for_kernel ;\
 	  cd build_for_kernel;\
 	  cmake -D CMAKE_C_FLAGS="-fno-stack-protector -DNDEBUG -fno-pic -mcmodel=kernel  " .. ;\
@@ -53,7 +53,7 @@ run_test1:
 		echo "Please run as root" ;\
 	fi  
 
-all: test1 module run_test1
+all: test1  module run_test1
 
 .PHONY: zydis module run_test1
 
