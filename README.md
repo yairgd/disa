@@ -21,11 +21,11 @@ make
 ```
 
 # Testing the module
-Run test1 and see its results
+Run test1,test2.py are unit tests for this module. To load the module into the kernel use this command:
 ```bash
 sudo insmod module/disa.ko
 sudo ./test1
-dmesg |tail -n50
+sudo ./test2.py
 ```
 
 ## Testing the misc interface
@@ -42,13 +42,13 @@ lea rsi, [0x000055EE2B1475D5]
 ```
 and the same disasebly in kernel space:
 ```bash
-[30799.761522] push rbp
-[30799.761530] mov rbp, rsp
-[30799.761536] sub rsp, 0x10
-[30799.761542] mov [rbp-0x04], edi
-[30799.761545] mov eax, [rbp-0x04]
-[30799.761548] mov edx, eax
-[30799.761552] lea rsi, [0x000055F50A1455D5]
+push rbp
+mov rbp, rsp
+sub rsp, 0x10
+mov [rbp-0x04], edi
+mov eax, [rbp-0x04]
+mov edx, eax
+lea rsi, [0x000055F50A1455D5]
 ```
 Both results are identical with gdb:
 ```bash
@@ -72,33 +72,37 @@ cat /sys/module/disasm/parameters/addr
 93824992295610
 ```
 ## Testing module parameters API interface
-Use this command to get list of inernal functions that module is able to disasebmly 
-```bash
-cat /sys/module/disasm/parameters/func 
+Use this command to get list of inernal functions that module is able to disasebmly. Here is pyhton code to uses to disasmble the code of *kfree*:
+```python
+# select intenal function to disasembly  
+f = open("/sys/module/disasm/parameters/func","w");
+f.write("kfree");
+f.close();
+# read the disasmbly data as file
+f=open("/dev/disa","r");
+a = f.read(256);
+a = a.replace(';','\n');
+print ( a);
+f.close();
 ```
-The result should be 
+And the result is:
 ```bash
-list of functions to disassely:
-kmalloc,kfree,printk
-```
-To disasmble functions use this command:
-```bash
-# select function 
-sudo sh -c 'echo printk > /sys/module/disasm/parameters/func'
-# size of memory to disassbly+
-sudo sh -c 'echo 24 > /sys/module/disasm/parameters/size'
-dmesg | tail -n50
-```
-And the result is
-```bash
-[31477.477713] disassembly of printk
-[31477.477729] push rbp
-[31477.477734] mov rbp, rsp
-[31477.477737] push r10
-[31477.477742] lea rax, [rbp-0x38]
-[31477.477745] lea r10, [rbp+0x10]
-[31477.477750] sub rsp, 0x48
-[31477.477753] mov [rbp-0x30], rsi
+push rbp
+mov rbp, rsp
+push r13
+push r12
+mov r13, [rbp+0x08]
+push rbx
+mov rbx, rdi
+nop
+cmp rbx, 0x10
+jbe 0xFFFFFFFF8117C71D
+mov r10d, 0x80000000
+mov rax, 0x77FF80000000
+mov rdi, 0xFFFFEA0000000000
+add r10, rbx
+cmovb rax, [0xFFFFFFFF81E0D010]
+add r10, rax
 ```
 
 # References
