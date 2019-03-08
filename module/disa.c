@@ -30,6 +30,8 @@
 #include <linux/device.h>
 #include <linux/miscdevice.h>
 #include <linux/slab.h>         // kmalloc()
+#include <asm/ioctl.h>
+#include <Zydis/Zydis.h>
 
 #define DEVICE_NAME "disa"
 
@@ -38,7 +40,7 @@ MODULE_AUTHOR("Yair Gadelov");
 MODULE_DESCRIPTION("disssmbly module"); 
 MODULE_VERSION("0.1");  
 
-#include <Zydis/Zydis.h>
+
 
 const struct _func {
 	char *name;
@@ -56,11 +58,14 @@ struct disa_params {
 	char buffer[256];
 	ZydisDecodedInstruction instruction;
 	ZydisDecoder decoder;
-//	ZyanUSize offset ;
 	ZyanU64 runtime_address; 
 	unsigned long addr ;
-//	int size;
 };
+
+static unsigned long addr ;
+#define DISA_SETADDR  123
+//_IOC(_IOC_WRITE, 'k', 1, sizeof(addr))
+
 
 /* not needed parameters, just for demo */
 static char *devname = "disa";
@@ -82,18 +87,19 @@ static const struct kernel_param_ops size_ops = {
 static int size=24;
 module_param_cb(size, &size_ops, &size, S_IRUGO | S_IWUSR);
 
+
+
 /* parmeter to set the disassembly function */
 static char *func_name;
-static  struct _func *sel_int_func = 0;
 static int func_set(const char *val, const struct kernel_param *kp)
 {
-	struct _func  *f = funcs;
+	const struct _func  *f = funcs;
+	addr = 0;
 	if ( param_set_charp(val, kp)<0)
 		return -EINVAL;
-	sel_int_func = 0;
 	while (f->name) {
 		if (strncmp (f->name,func_name,strlen (f->name))==0) {
-			sel_int_func = f;
+			addr = (unsigned long)(f->fp);
 			return 0;	
 		}
 		f++;
@@ -122,38 +128,21 @@ static const struct kernel_param_ops func_ops = {
 };
 module_param_cb(func, &func_ops, &func_name,  S_IRUGO | S_IWUSR );
 
-/* set user defined address to read from */
-static int addr_set(const char *val, const struct kernel_param *kp)
-{
-	return param_set_ulong(val, kp);
-}
 
-static const struct kernel_param_ops addr_ops = {
-	.set	= addr_set,
-	.get	= param_get_ulong,
-};
-
-
-static unsigned long addr;
-module_param_cb(addr, &addr_ops, &addr,  S_IRUGO | S_IWUSR );
-
-
-
-
-/* Close watchdog */
-static int
+	static int
 disa_close(struct inode *inode, struct file *file)
 {
 	return 0;
 }
 
-static ssize_t
+	static ssize_t
 disa_read(struct file *file, char __user *data_to_user,
 		size_t len, loff_t *ppose)
 {
 	struct disa_params *disa_params = file->private_data;
 	ZyanU8 *data  = (void*)disa_params->addr;
-	 ZyanUSize length =  len;
+	printk("!!!!!!!!!!!!!!!!!!!!!!! %ld\n",disa_params->addr);
+	ZyanUSize length =  len;
 	char buf[64];
 	int bufferlen;
 
@@ -188,13 +177,13 @@ disa_read(struct file *file, char __user *data_to_user,
 			break;
 	}
 
-//	if (bufferlen) {
-//		bufferlen--;
-//		disa_params->buffer[bufferlen] =0;
-//	}
-	 disa_params->addr = (void*)data;
-	
-	copy_to_user(data_to_user,disa_params->buffer,  bufferlen  );
+	//	if (bufferlen) {
+	//		bufferlen--;
+	//		disa_params->buffer[bufferlen] =0;
+	//	}
+	disa_params->addr = (unsigned long)data;
+
+	(void)copy_to_user(data_to_user,disa_params->buffer,  bufferlen  );
 	strcpy (disa_params->buffer,buf);
 	return bufferlen;
 }
@@ -205,18 +194,16 @@ disa_open(struct inode *inode, struct file *file)
 {
 
 	struct disa_params *disa_params; 
-	if (!sel_int_func)
+	if (!addr)
 		return -EINVAL;
 	disa_params = kzalloc (sizeof (struct disa_params) , GFP_USER);
-	disa_params->addr = (unsigned long)(sel_int_func->fp);
-//	disa_params->size = 64;
+	disa_params->addr = addr;
 	disa_params->runtime_address = addr; 
 	ZydisDecoderInit(&disa_params->decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 	ZydisFormatterInit(&disa_params->formatter, ZYDIS_FORMATTER_STYLE_INTEL);
 	file->private_data = disa_params;
 	return 0;
 }
-
 
 	static int
 disa_release(struct inode *inode, struct file *file)
@@ -227,32 +214,25 @@ disa_release(struct inode *inode, struct file *file)
 }
 
 
-static long
+	static long
 disa_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-#if 0
-   /* ... */
-   switch (cmd) {
-     case WDIOC_KEEPALIVE:
-       /* Write to the watchdog. Applications can invoke
-          this ioctl instead of writing to the device */
-       WD_SERVICE_REGISTER = 0xABCD;
-       break;
-     case WDIOC_SETTIMEOUT:
-        copy_from_user(&timeout, (int *)arg, sizeof(int));
+	unsigned long setaddr;
+	struct disa_params *disa_params = file->private_data;	
+	switch (cmd) {
+		case DISA_SETADDR:
+			if (copy_from_user(&setaddr , (unsigned long * )arg, sizeof(unsigned long)))
+            	return -EFAULT;
+	disa_params->addr = setaddr;
+	disa_params->runtime_address = setaddr; 
 
-       /* Set the timeout that defines unresponsiveness by
-          writing to the watchdog control register */
-        WD_CONTROL_REGISTER = timeout << TIMEOUT_BITS;
-       break;
-     case WDIOC_GETTIMEOUT:
-       /* Get the currently set timeout from the watchdog */
-       /* ... */
-       break;
-     default:
-       return 鈥揈NOTTY;
-   }
-#endif
+	printk("XXXXXXXXXXXXXXXXXXXXXXXXXXXX` %ld %ld\n",disa_params->addr, setaddr);
+
+			break;
+		default:
+			return -ENOTTY;
+	};
+	return 0;
 }
 
 /* Driver methods */
@@ -279,6 +259,7 @@ static struct miscdevice disa_dev = {
 	static int __init
 disa_init(void)
 {
+	addr = (unsigned long) funcs[0].fp;
 	misc_register(&disa_dev);
 	return 0;
 }

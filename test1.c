@@ -22,6 +22,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+       #include <sys/ioctl.h>
+       #include <string.h>
 
 void func1(int v)
 {
@@ -33,131 +35,75 @@ void func1(int v)
 #include <inttypes.h>
 #include <Zydis/Zydis.h>
 
-int disa1 (void *p,int n)
-{
-    ZyanU8 *data  = p;
-    int sizeofp = n;
 
+ZydisFormatter formatter;
+char buffer[256];
 
-    // Initialize decoder context
-    ZydisDecoder decoder;
-    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
-
-    // Initialize formatter. Only required when you actually plan to do instruction
-    // formatting ("disassembling"), like we do here
-    ZydisFormatter formatter;
-    ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
-
-    // Loop over the instructions in our buffer.
-    // The runtime-address (instruction pointer) is chosen arbitrary here in order to better
-    // visualize relative addressing
-    ZyanU64 runtime_address = (unsigned long)p;
-    ZyanUSize offset = 0;
-    const ZyanUSize length = sizeof(data);
-    ZydisDecodedInstruction instruction;
-    while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, data + offset, length - offset,
-        &instruction)))
-    {
-        // Print current instruction pointer.
-        printf("%016" PRIX64 "  ", runtime_address);
-
-        // Format & print the binary instruction structure to human readable format
-        char buffer[256];
-        ZydisFormatterFormatInstruction(&formatter, &instruction, buffer, sizeof(buffer),
-            runtime_address);
-        puts(buffer);
-
-        offset += instruction.length;
-        runtime_address += instruction.length;
-    }
-}
- ZydisFormatter formatter;
-        char buffer[256];
-
-static
+	static
 void disa (void *p,int n)
 {
-    ZyanU8 *data  = p;
-  //  int sizeofp = n;
-   
-    ZyanU64 runtime_address = (ZyanU64)p;
-    ZyanUSize offset = 0;
-    const ZyanUSize length = n; //sizeof(data);
-    ZydisDecodedInstruction instruction;
+	ZyanU8 *data  = p;
+	//  int sizeofp = n;
 
-    // Initialize decoder context
-    ZydisDecoder decoder;
-    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+	ZyanU64 runtime_address = (ZyanU64)p;
+	ZyanUSize offset = 0;
+	const ZyanUSize length = n; //sizeof(data);
+	ZydisDecodedInstruction instruction;
 
-    // Initialize formatter. Only required when you actually plan to do instruction
-    // formatting ("disassembling"), like we do here
-    ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+	// Initialize decoder context
+	ZydisDecoder decoder;
+	ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 
-    // Loop over the instructions in our buffer.
-    // The runtime-address (instruction pointer) is chosen arbitrary here in order to better
-    // visualize relative addressing
-    while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, data + offset, length - offset,
-        &instruction)))
-    {
-        // Print current instruction pointer.
-        //printk("%016" PRIX64 "  ", runtime_address);
+	// Initialize formatter. Only required when you actually plan to do instruction
+	// formatting ("disassembling"), like we do here
+	ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
 
-        // Format & print the binary instruction structure to human readable format
-        ZydisFormatterFormatInstruction(&formatter, &instruction, buffer, sizeof(buffer),
-            runtime_address);
-        printf("%s",buffer);
-        printf("\n");
-	
-        offset += instruction.length;
-        runtime_address += instruction.length;
-    }
+	// Loop over the instructions in our buffer.
+	// The runtime-address (instruction pointer) is chosen arbitrary here in order to better
+	// visualize relative addressing
+	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, data + offset, length - offset,
+					&instruction)))
+	{
+		// Print current instruction pointer.
+		//printk("%016" PRIX64 "  ", runtime_address);
+
+		// Format & print the binary instruction structure to human readable format
+		ZydisFormatterFormatInstruction(&formatter, &instruction, buffer, sizeof(buffer),
+				runtime_address);
+		printf("%s",buffer);
+		printf("\n");
+
+		offset += instruction.length;
+		runtime_address += instruction.length;
+	}
 }
 
 
 int main()
 {
-	long fd,addr,size;
-	char buf[16];
+	long fd;
+	char buff[128];
+	int i,j;
 
 	func1(123);
-	/* do disasembly from user sapce using dydis library */
+	printf ("\n");	
+	printf ("get disasembly data for func1 from user space app\n-----------------------------------\n"); 
 	disa (func1,24);
+	printf ("\n");
 
-	/* do disassembly from kernel space */
-	addr = (long) func1;
-	size=64;
-	/* write addr */
-	fd = open ( "/sys/module/disasm/parameters/addr",O_WRONLY);
-	if (fd<0) {
-		printf ("module dis is not installed\n");
-		exit (-1);
-	}
-	snprintf (buf,16,"%ld",addr);
-	write( fd, buf, 16);
-	close (fd);
-	addr = atoi (buf);
+	printf ("get disasembly data for func1 from kernel\n-----------------------------------\n"); 
 
-	/* wrte size to read */
-	fd = open ( "/sys/module/disasm/parameters/func",O_WRONLY);
-	if (fd<0) {
-		printf ("module dis is not installed\n");
-		exit (-1);
-	}
-	snprintf (buf,16,"kfree");
-	write( fd, buf, 16);
-	close (fd);
-	size = atoi (buf);
 
-	char buff[128];
 	fd = open ( "/dev/disa",O_RDONLY);
-
-	char bb[1024];
-
-	memset (buff,0,128);
-	for  (int i=0;i<50;i++) {
-	int n=read  ( fd,buff, 128);
-	snprintf(bb,n,"%s",buff);
-	printf("%s\n",bb);
+	unsigned long f = (unsigned long )&func1;	
+	ioctl (fd,123,&f);
+	for  ( i=0;i<1;i++) {
+		memset (buff,0,sizeof(buff));
+		int n=read  ( fd,buff, sizeof(buff));
+		for (j = 0;j<n;j++)
+			if (buff[j]==';')
+				buff[j]='\n';
+		printf ("%s",buff);
 	}
 	close (fd);
 	return 0;
