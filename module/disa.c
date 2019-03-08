@@ -3,7 +3,7 @@
  *
  *       Filename:  disa.c
  *
- *    Description:  
+ *    Description:  kernel module todisasembly code in kernel using zydis library
  *
  *        Version:  1.0
  *        Created:  02/15/2019 07:18:16 PM
@@ -175,14 +175,11 @@ disa_read(struct file *file, char __user *data_to_user,
 			break;
 	}
 
-	//	if (bufferlen) {
-	//		bufferlen--;
-	//		disa_params->buffer[bufferlen] =0;
-	//	}
+
 	disa_params->addr = (unsigned long)data;
 
 	if (copy_to_user(data_to_user,disa_params->buffer,  bufferlen  ))
-            	return -EFAULT;
+		return -EFAULT;
 
 	strcpy (disa_params->buffer,buf);
 	return bufferlen;
@@ -222,9 +219,9 @@ disa_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	switch (cmd) {
 		case DISA_SETADDR:
 			if (copy_from_user(&setaddr , (unsigned long * )arg, sizeof(unsigned long)))
-            	return -EFAULT;
-	disa_params->addr = setaddr;
-	disa_params->runtime_address = setaddr; 
+				return -EFAULT;
+			disa_params->addr = setaddr;
+			disa_params->runtime_address = setaddr; 
 
 
 			break;

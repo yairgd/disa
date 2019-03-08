@@ -3,7 +3,8 @@
  *
  *       Filename:  test1.c
  *
- *    Description:  
+ *    Description: This exmaple uses /dev/disa to dump disasembly code of a local function. 
+ *    		   It does with kernel module disa (which build on zydis) and in userspace using zydis  library.
  *
  *        Version:  1.0
  *        Created:  02/15/2019 07:30:13 PM
