@@ -22,8 +22,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-       #include <sys/ioctl.h>
-       #include <string.h>
+#include <sys/ioctl.h>
+#include <string.h>
+#include <asm/ioctl.h>
+#define DISA_SETADDR  _IOC(_IOC_WRITE, 'k', 1, sizeof(unsigned long))
 
 void func1(int v)
 {
@@ -96,7 +98,7 @@ int main()
 
 	fd = open ( "/dev/disa",O_RDONLY);
 	unsigned long f = (unsigned long )&func1;	
-	ioctl (fd,123,&f);
+	ioctl (fd,DISA_SETADDR,&f);
 	for  ( i=0;i<1;i++) {
 		memset (buff,0,sizeof(buff));
 		int n=read  ( fd,buff, sizeof(buff));

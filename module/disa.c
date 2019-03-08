@@ -40,6 +40,7 @@ MODULE_AUTHOR("Yair Gadelov");
 MODULE_DESCRIPTION("disssmbly module"); 
 MODULE_VERSION("0.1");  
 
+#define DISA_SETADDR  _IOC(_IOC_WRITE, 'k', 1, sizeof(unsigned long))
 
 
 const struct _func {
@@ -63,8 +64,6 @@ struct disa_params {
 };
 
 static unsigned long addr ;
-#define DISA_SETADDR  123
-//_IOC(_IOC_WRITE, 'k', 1, sizeof(addr))
 
 
 /* not needed parameters, just for demo */
@@ -141,7 +140,6 @@ disa_read(struct file *file, char __user *data_to_user,
 {
 	struct disa_params *disa_params = file->private_data;
 	ZyanU8 *data  = (void*)disa_params->addr;
-	printk("!!!!!!!!!!!!!!!!!!!!!!! %ld\n",disa_params->addr);
 	ZyanUSize length =  len;
 	char buf[64];
 	int bufferlen;
@@ -183,7 +181,9 @@ disa_read(struct file *file, char __user *data_to_user,
 	//	}
 	disa_params->addr = (unsigned long)data;
 
-	(void)copy_to_user(data_to_user,disa_params->buffer,  bufferlen  );
+	if (copy_to_user(data_to_user,disa_params->buffer,  bufferlen  ))
+            	return -EFAULT;
+
 	strcpy (disa_params->buffer,buf);
 	return bufferlen;
 }
@@ -226,7 +226,6 @@ disa_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	disa_params->addr = setaddr;
 	disa_params->runtime_address = setaddr; 
 
-	printk("XXXXXXXXXXXXXXXXXXXXXXXXXXXX` %ld %ld\n",disa_params->addr, setaddr);
 
 			break;
 		default:
