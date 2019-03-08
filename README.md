@@ -28,7 +28,7 @@ sudo ./test1
 sudo ./test2.py
 ```
 
-## Testing the misc interface
+## Testing of disasmbly of userspace function
 Compare between the output of test1 function that disasemble func1 (see test1.c) on user space and in the kernel space using disa module. Here is the output of test1 in user space:
 ```bash
 this function  named "func1" with param 123
@@ -71,7 +71,7 @@ and the addr parameter also equals to it:
 cat /sys/module/disasm/parameters/addr 
 93824992295610
 ```
-## Testing module parameters API interface
+## Testing of disasbly internal kernel function
 Use this command to get list of inernal functions that module is able to disasebmly. Here is pyhton code to uses to disasmble the code of *kfree*:
 ```python
 # select intenal function to disasembly  
