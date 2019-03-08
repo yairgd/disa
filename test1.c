@@ -138,12 +138,12 @@ int main()
 	addr = atoi (buf);
 
 	/* wrte size to read */
-	fd = open ( "/sys/module/disasm/parameters/size",O_WRONLY);
+	fd = open ( "/sys/module/disasm/parameters/func",O_WRONLY);
 	if (fd<0) {
 		printf ("module dis is not installed\n");
 		exit (-1);
 	}
-	snprintf (buf,16,"%ld",size);
+	snprintf (buf,16,"kfree");
 	write( fd, buf, 16);
 	close (fd);
 	size = atoi (buf);
@@ -151,10 +151,13 @@ int main()
 	char buff[128];
 	fd = open ( "/dev/disa",O_RDONLY);
 
+	char bb[1024];
+
 	memset (buff,0,128);
 	for  (int i=0;i<50;i++) {
-	read  ( fd,buff, 128);
-	printf("%s\n",buff);
+	int n=read  ( fd,buff, 128);
+	snprintf(bb,n,"%s",buff);
+	printf("%s\n",bb);
 	}
 	close (fd);
 	return 0;

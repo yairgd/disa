@@ -56,7 +56,7 @@ struct disa_params {
 	char buffer[256];
 	ZydisDecodedInstruction instruction;
 	ZydisDecoder decoder;
-	ZyanUSize offset ;
+//	ZyanUSize offset ;
 	ZyanU64 runtime_address; 
 	unsigned long addr ;
 //	int size;
@@ -153,7 +153,7 @@ disa_read(struct file *file, char __user *data_to_user,
 {
 	struct disa_params *disa_params = file->private_data;
 	ZyanU8 *data  = (void*)disa_params->addr;
-	const ZyanUSize length =  len;
+	 ZyanUSize length =  len;
 	char buf[64];
 	int bufferlen;
 
@@ -163,7 +163,7 @@ disa_read(struct file *file, char __user *data_to_user,
 	// Loop over the instructions in our buffer.
 	// The runtime-address (instruction pointer) is chosen arbitrary here in order to better
 	// visualize relative addressing
-	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&disa_params->decoder, data + disa_params->offset, length - disa_params->offset,&disa_params->instruction)))
+	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&disa_params->decoder, data , length ,&disa_params->instruction)))
 	{
 		// Print current instruction pointer.
 		//printk("%016" PRIX64 "  ", runtime_address);
@@ -180,7 +180,9 @@ disa_read(struct file *file, char __user *data_to_user,
 			memset (buf,0,sizeof(buf));
 			//printk("%s\n",disa_params->buffer);
 
-			disa_params->offset += disa_params->instruction.length;
+			//disa_params->offset += disa_params->instruction.length;
+			data += disa_params->instruction.length;
+			length -= disa_params->instruction.length;
 			disa_params->runtime_address += disa_params->instruction.length;
 		} else
 			break;
@@ -190,6 +192,8 @@ disa_read(struct file *file, char __user *data_to_user,
 //		bufferlen--;
 //		disa_params->buffer[bufferlen] =0;
 //	}
+	 disa_params->addr = (void*)data;
+	
 	copy_to_user(data_to_user,disa_params->buffer,  bufferlen  );
 	strcpy (disa_params->buffer,buf);
 	return bufferlen;
