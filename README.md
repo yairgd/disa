@@ -4,11 +4,11 @@ Simple module to disassembly memory using Linux kernel module. This modules is b
 # Module structure
 The module allows 2 interfaces from user space: 
 * Using kernel parameters API:</br>
-    This part of the module demonstrates the use of module parameters API to control the module. There is one parameter named *func* and it uses to select from user space the internal function that is going to    
+    This part of the module demonstrates the use of module parameters API to control the module. There is one parameter named *func* and it uses to select from userspace the internal function to disasmble. 
 
 * Using kernel char device API (using misc device):</br>
-    The purpose of this interface is to make a file behavior for the disa module using */dev/disa* using file system calls like open,read,ioctl. The context of the file is the disasembly text code of the selected function. Seclected function can be one of two:</br>
-    1. Internal kennel function (see kernel parameter *func*) </br>
+    The purpose of this interface is to make a file behavior for the disa module using */dev/disa* using file system calls  open,read,ioctl and its content is the disasembly text code of a selected function. Seclected function can be one of two:</br>
+    1. Internal kennel function (see kernel parameter *func*)  </br>
     2. Local function of a proccess and it set using ioctl system call.
     
 
@@ -102,8 +102,7 @@ And the result is
 ```
 
 # References
-Here are some reference sources that used to create this module
-https://stackoverflow.com/questions/10748453/replace-comma-with-newline-in-sed-on-macos
+Here are some reference sources that used to create this module</br>
 http://www.embeddedlinux.org.cn/essentiallinuxdevicedrivers/final/ch05lev1sec7.html</br>
 http://olegkutkov.me/2018/03/14/simple-linux-character-device-driver/</br>
 https://linux-kernel-labs.github.io/master/labs/device_drivers.html</br>
