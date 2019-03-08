@@ -1,16 +1,16 @@
 # disa
-Simple module to disassembly memory using a Linux kernel module. This module is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also, there is a userspace application to demonstrate the Zydis library on a test function in user space and disassembly of the same function at the kernel space. Also, it is able to dissemble internal functions of the kernel like printk, kmalloc etc'. This document is written with MarkDown and [here](https://daringfireball.net/projects/markdown/basics) is a good reference explaining how to use it.
+Simple module to disassembly memory using Linux kernel module. This modules is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also , there is a user space application to demonstrate  the Zydis library on a test function in user space and disassembly of the same function at the kernel space. Also is is able to dissemble internal functions of the kernel like: printk, kmalloc etc'. This document is written with MarkDown and [here](https://daringfireball.net/projects/markdown/basics) is a good reference explaining how to use it.
 
 # Module structure
 The module allows 2 interfaces from user space: 
-* Using kernel parameters API. 
-    This part of the module demonstrates the use of module parameters API to control the module. There are 2 parameters:
+* Using kernel parameters API:</br>
+    This part of the module demonstrates the use of module parameters API to control the module. There is one parameter named *func* and it uses to select from userspace the internal function to disasmble. 
+
+* Using kernel char device API (using misc device):</br>
+    The purpose of this interface is to make a file behavior for the disa module using */dev/disa* using file system calls  open,read,ioctl and its content is the disasembly text code of a selected function. Seclected function can be one of two:</br>
+    1. Internal kennel function (see kernel parameter *func*)  </br>
+    2. Local function of a proccess and it set using ioctl system call.
     
-    1. *size* - the size of memory to disassemble
-    2. *func* - the name of build in Linux kernel to disassemble 
-    
-* Using kernel char device API (using misc device):
-The purpose of this interface is to make a file behavior for the disa module using */dev/disasm* using file system calls like open,read,ioctl. this interface  it not ready yet, so the disassembly is done when an open system call is called (See test1.c)
 
 
 # Build the module
@@ -21,14 +21,14 @@ make
 ```
 
 # Testing the module
-Run test1 and see its results
+Run test1,test2.py are unit tests for this module. To load the module into the kernel use this command:
 ```bash
 sudo insmod module/disa.ko
 sudo ./test1
-dmesg |tail -n50
+sudo ./test2.py
 ```
 
-## Testing the misc interface
+## Testing of disasmbly of userspace function
 Compare between the output of test1 function that disasemble func1 (see test1.c) on user space and in the kernel space using disa module. Here is the output of test1 in user space:
 ```bash
 this function  named "func1" with param 123
@@ -42,13 +42,13 @@ lea rsi, [0x000055EE2B1475D5]
 ```
 and the same disasebly in kernel space:
 ```bash
-[30799.761522] push rbp
-[30799.761530] mov rbp, rsp
-[30799.761536] sub rsp, 0x10
-[30799.761542] mov [rbp-0x04], edi
-[30799.761545] mov eax, [rbp-0x04]
-[30799.761548] mov edx, eax
-[30799.761552] lea rsi, [0x000055F50A1455D5]
+push rbp
+mov rbp, rsp
+sub rsp, 0x10
+mov [rbp-0x04], edi
+mov eax, [rbp-0x04]
+mov edx, eax
+lea rsi, [0x000055F50A1455D5]
 ```
 Both results are identical with gdb:
 ```bash
@@ -71,42 +71,46 @@ and the addr parameter also equals to it:
 cat /sys/module/disasm/parameters/addr 
 93824992295610
 ```
-## Testing module parameters API interface
-Use this command to get list of inernal functions that module is able to disasebmly 
-```bash
-cat /sys/module/disasm/parameters/func 
+## Testing of disasbly internal kernel function
+Use this command to get list of inernal functions that module is able to disasebmly. Here is pyhton code to uses to disasmble the code of *kfree*:
+```python
+# select intenal function to disasembly  
+f = open("/sys/module/disasm/parameters/func","w");
+f.write("kfree");
+f.close();
+# read the disasmbly data as file
+f=open("/dev/disa","r");
+a = f.read(256);
+a = a.replace(';','\n');
+print ( a);
+f.close();
 ```
-The result should be 
+And the result is:
 ```bash
-list of functions to disassely:
-kmalloc,kfree,printk
-```
-To disasmble functions use this command:
-```bash
-# select function 
-sudo sh -c 'echo printk > /sys/module/disasm/parameters/func'
-# size of memory to disassbly+
-sudo sh -c 'echo 24 > /sys/module/disasm/parameters/size'
-dmesg | tail -n50
-```
-And the result is
-```bash
-[31477.477713] disassembly of printk
-[31477.477729] push rbp
-[31477.477734] mov rbp, rsp
-[31477.477737] push r10
-[31477.477742] lea rax, [rbp-0x38]
-[31477.477745] lea r10, [rbp+0x10]
-[31477.477750] sub rsp, 0x48
-[31477.477753] mov [rbp-0x30], rsi
+push rbp
+mov rbp, rsp
+push r13
+push r12
+mov r13, [rbp+0x08]
+push rbx
+mov rbx, rdi
+nop
+cmp rbx, 0x10
+jbe 0xFFFFFFFF8117C71D
+mov r10d, 0x80000000
+mov rax, 0x77FF80000000
+mov rdi, 0xFFFFEA0000000000
+add r10, rbx
+cmovb rax, [0xFFFFFFFF81E0D010]
+add r10, rax
 ```
 
 # References
-Here are some reference sources that used to create this module
-
+Here are some reference sources that used to create this module</br>
 http://www.embeddedlinux.org.cn/essentiallinuxdevicedrivers/final/ch05lev1sec7.html</br>
 http://olegkutkov.me/2018/03/14/simple-linux-character-device-driver/</br>
 https://linux-kernel-labs.github.io/master/labs/device_drivers.html</br>
 https://gist.github.com/brenns10/65d1ee6bb8419f96d2ae693eb7a66cc0</br>
 https://www.kernel.org/doc/htmldocs/kernel-hacking/routines-module-use-counters.html</br>
 https://stackoverflow.com/questions/18456155/what-is-the-difference-between-misc-drivers-and-char-drivers</br>
+
