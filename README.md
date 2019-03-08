@@ -3,14 +3,14 @@ Simple module to disassembly memory using Linux kernel module. This modules is b
 
 # Module structure
 The module allows 2 interfaces from user space: 
-* Using kernel parameters API. 
-    This part of the module demonstrate the use of module parameters API to control the module. There are 2 parameters:
+* Using kernel parameters API:</br>
+    This part of the module demonstrates the use of module parameters API to control the module. There is one parameter named *func* and it uses to select from user space the internal function that is going to    
+
+* Using kernel char device API (using misc device):</br>
+    The purpose of this interface is to make a file behavior for the disa module using */dev/disa* using file system calls like open,read,ioctl. The context of the file is the disasembly text code of the selected function. Seclected function can be one of two:</br>
+    1. Internal kennel function (see kernel parameter *func*) </br>
+    2. Local function of a proccess and it set using ioctl system call.
     
-    1. *size* - the size of memory to disasmble
-    2. *func* - name of build in Linux kernel to disassemble 
-    
-* Using kernel char device API (using misc device):
-The purpose of this interface is to make a file behavior for the disa module using */dev/disasm* using file system calls like open,read,ioctl. this interface  it not ready yet, so the disassembly is done when open system call is called (See test1.c)
 
 
 # Build the module
