@@ -151,8 +151,11 @@ int main()
 	char buff[128];
 	fd = open ( "/dev/disa",O_RDONLY);
 
+	memset (buff,0,128);
+	for  (int i=0;i<50;i++) {
 	read  ( fd,buff, 128);
-
+	printf("%s\n",buff);
+	}
 	close (fd);
 	return 0;
 }

@@ -157,7 +157,7 @@ disa_read(struct file *file, char __user *data_to_user,
 	char buf[64];
 	int bufferlen;
 
-
+	memset (buf,0,sizeof(buf));
 	bufferlen = 0;
 	disa_params->buffer[0] = 0;
 	// Loop over the instructions in our buffer.
@@ -172,12 +172,12 @@ disa_read(struct file *file, char __user *data_to_user,
 		ZydisFormatterFormatInstruction(&disa_params->formatter, &disa_params->instruction, buf , sizeof(buf), disa_params->runtime_address);
 
 		bufferlen = strlen ( disa_params->buffer) ;
-		if (bufferlen + strlen (buf) +1 < len  && bufferlen + strlen (buf) + 1 <256  ) {
-			memcpy (bufferlen  +  disa_params->buffer , buf,strlen (buf));
+		if ( bufferlen + strlen (buf) +1 < len  && bufferlen + strlen (buf) + 1 <256  ) {
+			strcpy (bufferlen  +  disa_params->buffer , buf);//,strlen (buf));
 			bufferlen = strlen ( disa_params->buffer) ;
 			disa_params->buffer [bufferlen]=';';bufferlen++;
 			disa_params->buffer [bufferlen]=0;
-
+			memset (buf,0,sizeof(buf));
 			//printk("%s\n",disa_params->buffer);
 
 			disa_params->offset += disa_params->instruction.length;
@@ -191,6 +191,7 @@ disa_read(struct file *file, char __user *data_to_user,
 //		disa_params->buffer[bufferlen] =0;
 //	}
 	copy_to_user(data_to_user,disa_params->buffer,  bufferlen  );
+	strcpy (disa_params->buffer,buf);
 	return bufferlen;
 }
 
@@ -222,6 +223,33 @@ disa_release(struct inode *inode, struct file *file)
 }
 
 
+static long
+disa_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+#if 0
+   /* ... */
+   switch (cmd) {
+     case WDIOC_KEEPALIVE:
+       /* Write to the watchdog. Applications can invoke
+          this ioctl instead of writing to the device */
+       WD_SERVICE_REGISTER = 0xABCD;
+       break;
+     case WDIOC_SETTIMEOUT:
+        copy_from_user(&timeout, (int *)arg, sizeof(int));
+
+       /* Set the timeout that defines unresponsiveness by
+          writing to the watchdog control register */
+        WD_CONTROL_REGISTER = timeout << TIMEOUT_BITS;
+       break;
+     case WDIOC_GETTIMEOUT:
+       /* Get the currently set timeout from the watchdog */
+       /* ... */
+       break;
+     default:
+       return 鈥揈NOTTY;
+   }
+#endif
+}
 
 /* Driver methods */
 struct file_operations fops_disa = {
@@ -229,7 +257,8 @@ struct file_operations fops_disa = {
 	.open = disa_open,
 	.release = disa_close,
 	.read = disa_read,
-	.release = disa_release
+	.release = disa_release,
+	.unlocked_ioctl = disa_ioctl
 };
 
 
