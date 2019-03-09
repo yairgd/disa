@@ -72,7 +72,7 @@ cat /sys/module/disasm/parameters/addr
 93824992295610
 ```
 ## Testing of disasbly internal kernel function
-Use this command to get list of inernal functions that module is able to disasebmly. Here is pyhton code to uses to disasmble the code of *kfree*:
+Use this command to get list of inernal functions that module is able to disasebmly. Here is a pyhton code to use when its required to disasmble the code of *kfree*:
 ```python
 # select intenal function to disasembly  
 f = open("/sys/module/disasm/parameters/func","w");
