@@ -70,22 +70,6 @@ static unsigned long addr ;
 static char *devname = "disa";
 module_param(devname,charp,0660);
 
-/* parmater size, sets the length of the disassembly data */
-static int size_set(const char *val, const struct kernel_param *kp)
-{
-	/* check addr validity */
-	//	return -EINVAL;
-	return param_set_int(val, kp);
-}
-
-static const struct kernel_param_ops size_ops = {
-	.set	= size_set,
-	.get	= param_get_int,
-};
-
-static int size=24;
-module_param_cb(size, &size_ops, &size, S_IRUGO | S_IWUSR);
-
 
 
 /* parmeter to set the disassembly function */
