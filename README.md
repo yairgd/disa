@@ -104,6 +104,10 @@ add r10, rbx
 cmovb rax, [0xFFFFFFFF81E0D010]
 add r10, rax
 ```
+To use the module in bash command line type:
+```bash
+sudo cat /dev/disa | sed -e $'s/;/\\\n/g'
+```
 
 # References
 Here are some reference sources that used to create this module</br>
