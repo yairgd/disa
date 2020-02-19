@@ -1,13 +1,13 @@
 # disa
-Simple module to disassembly memory using a Linux kernel module. This module is based on [Zydis](https://github.com/zyantific/zydis) and integrated in this module. Also, there is a userspace application to demonstrate the Zydis library on a test function in user space and disassembly of the same function at the kernel space. Also is able to dissemble internal functions of the kernel like: printk, kmalloc etc'. This document is written with MarkDown and [here](https://daringfireball.net/projects/markdown/basics) is a good reference explaining how to use it.
+A simple module to disassembly memory using a Linux kernel module. This module is based on [Zydis](https://github.com/zyantific/zydis) and integrated into this module. Also, there is a userspace application to demonstrate the Zydis library on a test function in user space and disassembly of the same c  function at the kernel space. Also can dissemble internal c functions of the kernel like printk, kmalloc etc'. This document writes with MarkDown, and [here](https://daringfireball.net/projects/markdown/basics) is a useful reference explaining how to use it.
 
 # Module structure
-The module allows 2 interfaces from user space: 
+The module allows two interfaces from userspace: 
 * Using kernel parameters API:</br>
     This part of the module demonstrates the use of module parameters API to control the module. There is one parameter named *func* and it uses to select from userspace the internal function to disassemble. 
 
-* Using kernel char device API (using misc device):</br>
-    The purpose of this interface is to make a file behavior for the disa module using */dev/disa* using file system calls open, read,ioctl and its content is the disassembly text code of a selected function. The seclected function can be one of two:</br>
+* Using kernel char device API (using a misc device):</br>
+    The purpose of this interface is to make a file behavior for the disa module using */dev/disa* using file system calls open, read,ioctl, and its content is the disassembly text code of a selected function. The selected function can be one of two:</br>
     1. Internal kennel function (see kernel parameter *func*)  </br>
     2. The local function of a process and it set using ioctl system call.
     
@@ -21,7 +21,7 @@ make
 ```
 
 # Testing the module
-Run test1,test2.py are unit tests for this module. To load the module into the kernel use this command:
+Run test1,test2.py are unit tests for this module and to load into the kernel use this command:
 ```bash
 sudo insmod module/disa.ko
 sudo ./test1
@@ -29,7 +29,7 @@ sudo ./test2.py
 ```
 
 ## Testing of disassembly of userspace function
-Compare between the output of test1 function that disassemble func1 (see test1.c) on userspace and in the kernel space using disa module. Here is the output of test1 in user space:
+Compare between the output of test1 function that disassembles func1 (see test1.c) on userspace and in the kernel space using disa module. Here is the output of test1 in userspace:
 ```bash
 this function  named "func1" with param 123
 push rbp
@@ -53,7 +53,7 @@ lea rsi, [0x000055F50A1455D5]
 Both results are identical with gdb:
 ```bash
   (gdb) x/10i func1
-   0x555555563aba <func1>:  	push   %rbp
+   0x555555563aba <func1>:      push   %rbp
    0x555555563abb <func1+1>:    mov    %rsp,%rbp
    0x555555563abe <func1+4>:    sub    $0x10,%rsp
    0x555555563ac2 <func1+8>:    mov    %edi,-0x4(%rbp)
