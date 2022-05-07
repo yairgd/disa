@@ -64,6 +64,7 @@ struct disa_params {
 };
 
 static unsigned long addr ;
+static char external_addr;
 
 
 /* not needed parameters, just for demo */
@@ -83,6 +84,7 @@ static int func_set(const char *val, const struct kernel_param *kp)
 	while (f->name) {
 		if (strncmp (f->name,func_name,strlen (f->name))==0) {
 			addr = (unsigned long)(f->fp);
+			external_addr = 0;
 			return 0;	
 		}
 		f++;
@@ -123,10 +125,26 @@ disa_read(struct file *file, char __user *data_to_user,
 		size_t len, loff_t *ppose)
 {
 	struct disa_params *disa_params = file->private_data;
-	ZyanU8 *data  = (void*)disa_params->addr;
+	ZyanU8 bData[512];
+	ZyanU8 *data  =  bData; //(void*)disa_params->addr;
 	ZyanUSize length =  len;
 	char buf[64];
 	int bufferlen;
+
+
+
+	if (external_addr) { 
+		/*
+		 Copy the function data from the userspace to kernel space to handle the parsing of memory usage in the kernel space. 
+		 In the previous versions of the driver, this line did not exist. However, it ran on an earlier kernel version, and it had worked.
+		 In the new versions of the kernel, it must use copy_from_user. 
+		 Refer here for questions about it: https://www.linuxquestions.org/questions/linux-kernel-70/doubt-with-kernel-module-4175683252/	
+		*/
+		if (copy_from_user(data , (char * )disa_params->addr, 512))
+			return -EFAULT;
+	} else
+		data = (void*)disa_params->addr;
+	
 
 	memset (buf,0,sizeof(buf));
 	bufferlen = 0;
@@ -149,7 +167,7 @@ disa_read(struct file *file, char __user *data_to_user,
 			disa_params->buffer [bufferlen]=';';bufferlen++;
 			disa_params->buffer [bufferlen]=0;
 			memset (buf,0,sizeof(buf));
-			//printk("%s\n",disa_params->buffer);
+		//	printk("%s\n",disa_params->buffer);
 
 			//disa_params->offset += disa_params->instruction.length;
 			data += disa_params->instruction.length;
@@ -206,7 +224,7 @@ disa_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 				return -EFAULT;
 			disa_params->addr = setaddr;
 			disa_params->runtime_address = setaddr; 
-
+			external_addr = 1;
 
 			break;
 		default:
@@ -228,7 +246,7 @@ struct file_operations fops_disa = {
 
 /* Misc structure */
 static struct miscdevice disa_dev = {
-	.minor = 130, /* defined as 130 in
+	.minor = MISC_DYNAMIC_MINOR, /* defined as 130 in
 			 include/linux/miscdevice.h*/
 	.name = DEVICE_NAME,      /* /dev/DEVICE_NAME */
 	.fops = &fops_disa  /* disa driver entry points */

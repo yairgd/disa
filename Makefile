@@ -7,12 +7,16 @@ CFLAGS=-I. -I./$(ZYDIS-DIR)/include  -I./$(ZYDIS-DIR)/build  -I./$(ZYDIS-DIR)/bu
 top_srcdir  = $(shell pwd)
 export top_srcdir
 
-%.o: %.c $(DEPS) module/%.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+all: test1  disasm.ko  run_test1
 
-test1: zydis  disasm.ko test1.o 
+
+#%.o: %.c $(DEPS) module/%.c
+#	$(CC) -c -o $@ $< $(CFLAGS)
+
+test1: libZydis  test1.o 
 	$(CC) -o test1 test1.o ./zydis/build_for_app/libZydis.a
-disasm.ko: zydis libZydis-kernel.a
+	
+disasm.ko:  libZydis-kernel.a
 	cd module &&\
 	make && \
 	cd ..
@@ -22,23 +26,30 @@ zydis:
 	then \
 	  echo "zydis does not exist, fetching and copiling"; \
 	  echo "if any thing is failed ,then you will have to to mannualy"; \
-	  git clone --branch master  $(ZYDIS-REPO); \
+	  git clone  --recurse-submodules --branch master  $(ZYDIS-REPO); \
           cd $(ZYDIS-DIR) ;\
           git submodule update --init;\
 	  git reset --hard de9f60df9e32ec42b5a4c66fd548bae7de93abc8 ;\
-	  mkdir build_for_kernel ;\
-	  cd build_for_kernel;\
-	  cmake -D CMAKE_C_FLAGS="-fno-stack-protector -DNDEBUG -fno-pic -mcmodel=kernel  " .. ;\
-	  make ;\
-	  cd .. ;\
+	fi
+
+libZydis: zydis
+	  cd $(ZYDIS-DIR) ;\
+	  if [ -d build_for_app ];then rm build_for_app -rf ; fi;\
 	  mkdir build_for_app ;\
 	  cd build_for_app ;\
-	  cmake ..;\
+	  cmake  -DCMAKE_C_COMPILER_WORKS=1 -DCMAKE_CXX_COMPILER_WORKS=1  ..;\
 	  make ;\
-	  cd ..;\
-	fi
-libZydis-kernel.a:
-	cp $(ZYDIS-DIR)/build_for_kernel/libZydis.a module/libZydis-kernel.a
+	  cd ..;
+
+libZydis-kernel.a: zydis
+	  cd $(ZYDIS-DIR) ;\
+          if [ -d build_for_kernel ];then rm build_for_kernel -rf ; fi;\
+	  mkdir build_for_kernel ;\
+	  cd build_for_kernel;\
+	  cmake -DCMAKE_HAVE_THREADS_LIBRARY=1 -DCMAKE_THREAD_LIBS_INIT="-lpthread" -DZYDIS_BUILD_TOOLS=off -DZYDIS_BUILD_EXAMPLES=OFF -DCMAKE_C_COMPILER_WORKS=1 -DCMAKE_CXX_COMPILER_WORKS=1  -D CMAKE_C_FLAGS=" -fno-stack-protector -DNDEBUG -fno-pic -mcmodel=kernel  " .. ;\
+	  make ;\
+	  cd .. ; \
+	  cp ./build_for_kernel/libZydis.a ../module/libZydis-kernel.o
 clean:
 	make -C module clean
 	rm $(ZYDIS-DIR) -rf
@@ -46,14 +57,13 @@ clean:
 
 
 run_test1:
-	@if [ "${EUID}" -eq 0 ] ;\
+	@if [ $(shell id -u) -eq 0 ] ;\
 	then \
-		insmod module/disa.ko && ./test1 && rmmod disa	\
+		insmod module/disa.ko ;./test1 ; rmmod disa;	\
 	else \
 		echo "Please run as root" ;\
 	fi  
 
-all: test1  module run_test1
 
 .PHONY: zydis module run_test1
 
