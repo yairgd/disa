@@ -115,10 +115,9 @@ sudo cat /dev/disa | sed -e $'s/;/\\\n/g'
 
 # References
 Here are some reference sources that used to create this module</br>
-[1](http://www.embeddedlinux.org.cn/essentiallinuxdevicedrivers/final/ch05lev1sec7.html</br>)  
-http://olegkutkov.me/2018/03/14/simple-linux-character-device-driver/</br>  
-https://gist.github.com/brenns10/65d1ee6bb8419f96d2ae693eb7a66cc0</br>  
-https://www.kernel.org/doc/htmldocs/kernel-hacking/routines-module-use-counters.html</br>  
-https://stackoverflow.com/questions/18456155/what-is-the-difference-between-misc-drivers-and-char-drivers</br>  
-[6] [fix camke pthread problem](https://github.com/alicevision/geogram/issues/2)  
-[7] [misc device](https://www.linux.it/~rubini/docs/misc/misc.html)
+[1] [misc device](http://www.embeddedlinux.org.cn/essentiallinuxdevicedrivers/final/ch05lev1sec7.html)    
+[2] [char device](http://olegkutkov.me/2018/03/14/simple-linux-character-device-driver/)  
+[3] [example of char device](https://gist.github.com/brenns10/65d1ee6bb8419f96d2ae693eb7a66cc0)  
+[4] [misc vs char device](https://stackoverflow.com/questions/18456155/what-is-the-difference-between-misc-drivers-and-char-drivers)  
+[5] [fix camke pthread problem](https://github.com/alicevision/geogram/issues/2)  
+[6] [misc device](https://www.linux.it/~rubini/docs/misc/misc.html)  
