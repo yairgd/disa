@@ -13,14 +13,14 @@ The module allows two interfaces from userspace:
     
 
 
-# Build the module
+## Build the module
 ```bash
 git clone https://github.com/yairgd/disa.git
 cd disa
 make 
 ```
 
-# Testing the module
+## Testing the module
 Run test1,test2.py are unit tests for this module and to load into the kernel use this command:
 ```bash
 sudo insmod module/disa.ko
@@ -113,7 +113,14 @@ To use the module in bash command line type:
 sudo cat /dev/disa | sed -e $'s/;/\\\n/g'
 ```
 
-# References
+
+## Supervisor Mode Access Prevention
+When the module has to disassemble the function from userspace, it has to copy the function data from the userspace to kernel space to handle the parsing of memory usage in the kernel space. In the previous driver versions, the kernel had direct access to userspace. However, it ran on an earlier kernel version, and it had worked. In the new versions of the kernel, it must use copy_from_user. Refer [here](https://lwn.net/Articles/517475/) for more info:
+>Intel's new "Supervisor Mode Access Prevention" (SMAP) feature changes that situation; those wanting the details can find them starting on page 408 of >this reference manual [PDF]. This extension defines a new SMAP bit in the CR4 control register; when that bit is set, any attempt to access user-space >memory while running in a privileged mode will lead to a page fault. Linux support for this feature has been posted by H. Peter Anvin to generally >positive reviews; it could show up in the mainline as early as 3.7. 
+
+
+        
+## References
 Here are some reference sources that used to create this module</br>
 [1] [misc device](http://www.embeddedlinux.org.cn/essentiallinuxdevicedrivers/final/ch05lev1sec7.html)    
 [2] [char device](http://olegkutkov.me/2018/03/14/simple-linux-character-device-driver/)  
@@ -121,3 +128,4 @@ Here are some reference sources that used to create this module</br>
 [4] [misc vs char device](https://stackoverflow.com/questions/18456155/what-is-the-difference-between-misc-drivers-and-char-drivers)  
 [5] [fix camke pthread problem](https://github.com/alicevision/geogram/issues/2)  
 [6] [misc device](https://www.linux.it/~rubini/docs/misc/misc.html)  
+[7] [questions about it Supervisor mode access prevention](https://www.linuxquestions.org/questions/linux-kernel-70/doubt-with-kernel-module-4175683252/)
