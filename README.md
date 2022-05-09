@@ -1,5 +1,5 @@
 # disa
-A simple module to disassembly memory using a Linux kernel module. This module is based on [Zydis](https://github.com/zyantific/zydis) and integrated into this module. Also, there is a userspace application to demonstrate the Zydis library on a test function in user space and disassembly of the same c  function at the kernel space. Also can dissemble internal c functions of the kernel like printk, kmalloc etc'. This document writes with MarkDown, and [here](https://daringfireball.net/projects/markdown/basics) is a useful reference explaining how to use it.
+A simple module to disassembly memory using a Linux kernel module. This module is based on [Zydis](https://github.com/zyantific/zydis) and integrated into this module. Also, there is a userspace application to demonstrate the Zydis library on a test function in user space and disassembly of the same c  function at the kernel space. Also can dissemble internal c functions of the kernel like printk, kmalloc etc'. 
 
 ## Module structure
 The module allows two interfaces from userspace: 
